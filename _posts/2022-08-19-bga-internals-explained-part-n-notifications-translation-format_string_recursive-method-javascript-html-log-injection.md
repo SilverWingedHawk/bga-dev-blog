@@ -3,7 +3,7 @@ title: BGA Internals explained, part n: Notifications &ndash; Translation &ndash
 author: Thibault HUTTIN-PASSERON
 date: 2022-08-18 20:30:00 +0200
 categories: [Tips,Documentation]
-tags: [ntoification,log injection,translation]
+tags: [notification,log injection,translation]
 pin: false
 ---
 
@@ -90,7 +90,7 @@ $this->notifyPlayer($playerId, 'otherNotificationType', clienttranslate('You dre
 Yes as you can see the notification arguments can be empty. Because there are no parameters in my notification log message.
 
 A bit of vocabulary as well here. In the `$this->notifyAllPlayers` call, the string is a bit special as it contains
-*parameters* (the parts like ${player_name} and ${thing}), or as we have already called them *substitution keys*. They
+*parameters* (the parts like `${player_name}` and `${thing}`), or as we have already called them *substitution keys*. They
 are actually referred to as keys since they have to be keys of the args associative array. And the value of the key is
 the value linked to that specific key in the args array (so the `$args["key"]` value). That point is rather important for
 another part of this article, so you should make sure you have the right definitions for those words.
