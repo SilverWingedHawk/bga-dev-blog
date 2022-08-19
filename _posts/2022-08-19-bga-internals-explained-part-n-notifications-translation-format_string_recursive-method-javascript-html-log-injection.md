@@ -80,17 +80,17 @@ log message is translated. To do this, you simply need to pass it as an argument
 your `$this->notifyPlayer` and `this->notifyAllPlayers` calls will most likely look like this:
 
 ```php
-$this->notifyAllPlayers('notificationType', clienttranslate('${player_name} gains ${coin_number} coins'), [
+$this->notifyAllPlayers('gainCoins', clienttranslate('${player_name} gains ${coin_number} coins'), [
     "player_name" => $this->getActivePlayerName(),
-    "thing" => "some value",
+    "coin_number" => 5,
 ]);
-$this->notifyPlayer($playerId, 'otherNotificationType', clienttranslate('You drew a card'), []);
+$this->notifyPlayer($playerId, 'drawCardSelf', clienttranslate('You drew a card'), []);
 ```
 
 Yes as you can see the notification arguments can be empty. Because there are no parameters in my notification log message.
 
 A bit of vocabulary as well here. In the `$this->notifyAllPlayers` call, the string is a bit special as it contains
-*parameters* (the parts like `${player_name}` and `${thing}`), or as we have already called them *substitution keys*. They
+*parameters* (the parts like `${player_name}` and `${coin_number}`), or as we have already called them *substitution keys*. They
 are actually referred to as keys since they have to be keys of the args associative array. And the value of the key is
 the value linked to that specific key in the args array (so the `$args["key"]` value). That point is rather important for
 another part of this article, so you should make sure you have the right definitions for those words.
@@ -178,7 +178,20 @@ This can be done in three different ways, depending on where you're defining you
   By specifying the `"i18n"` key, I'm telling the system that the `cardName` value will need to be translated. Of course,
   in order to mark the string as translatable, I need to pass it through the `clienttranslate` function.
 * On the PHP side, in exceptions:
-* On the JS side
+  ```php
+  throw new BgaUserException(sprintf(self::_("You selected %s which is a %s card, and you can only select %s cards"),
+      self::_(""),
+      $cardType, // defined using self::_("")
+      $wantedCardType)); // also defined using self::_("")
+  ```
+* On the JS side:
+  ```js
+  dojo.string.substitute(_("${cardName} costs ${cost} coins and you only have ${amount} coins"), {
+    cardName: _("Some card name"), // or any variable defined using _()
+    cost: cost,
+    amount: amount,
+  })
+  ```
 
 #### What if I need to procedurally generate a sentence in my notification log messages ?
 
