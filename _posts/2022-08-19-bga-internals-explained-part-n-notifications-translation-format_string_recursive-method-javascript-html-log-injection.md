@@ -227,6 +227,69 @@ Once again, if this is not enough to your liking, I strongly encourage you to re
 [this post]({% post_url 2021-11-28-translations-summary %}) which will show you excerpts of the `format_string_recursive`
 method's source code.
 
+Let's assume our PHP backend sends the following notification:
+
+```php
+$this->notifyAllPlayers('discardCards',clienttranslate("${player_name} discards ${cardNames}"), [
+    "player_name" => $this->getActivePlayerName(),
+    "cardNames" => [
+        "log" => "${cardName0}, ${cardName1}, ${cardName2}",
+        "args" => [
+            "i18n" => [ "cardName0", "cardName1", "cardName2" ],
+            "cardName0" => clienttranslate("A card name"),
+            "cardName1" => clienttranslate("Another card name"),
+            "cardName2" => clienttranslate("A last card name"),
+        ],
+    ],
+]);
+```
+
+Here's how `format_string_recursive` would treat it, should the player be french:
+
+0. The notification object looks like this:
+   ```json
+   {
+       "type": "discardCards",
+       "log": "${player_name} discards ${cardNames}",
+       "args": {
+           "player_name": "SwHawk0",
+           "cardNames": {
+               "i18n": [ "cardName0", "cardName1", "cardName2" ],
+               "cardName0": "A card name",
+               "cardName1": "Another card name",
+               "cardName2": "A last card name"
+           }
+       }
+   }
+   ```
+1. Translating the log string: `"${player_name} se défausse de ${cardNames}"`
+1. There is no "i18" property in the args object, so no further translation need to happen at this step
+1. Looping through all the keys:
+   1. player_name isn't an object, going to the next key
+   1. cardNames is an object (remember PHP associative arrays become JS objects), and it has a log property, and an args
+      property that is an object. So `format_string_recursive` is applied to this key:
+      1. Translating the log string: `"${cardName0}, ${cardName1}, ${cardName2}"`, actually, no translation happens here,
+         since the string hasn't been marked as trasnlatable (clienttranslate wasn't called).
+      1. There's a "i18n" property:
+         1. The value associated with cardName0 is changed to: "Un nom de carte"
+         2. The value associated with cardName1 is changed to: "Un autre nom de carte"
+         3. The value associated with cardName2 is changed to: "Un dernier nom de carte"
+      1. All the keys are not objects, so no further call to `format_string_recursive`
+      1. All the keys are substituted by their value: `"Un nom de carte, Un autre nom de carte, Un dernier nom de carte"`
+   1. cardNames value is changed to : `"Un nom de carte, Un autre nom de carte, Un dernier nom de carte"`, at that point
+      the notification object looks like:
+      ```json
+      {
+          "type": "discardCards",
+          "log": "${player_name} se défausse de ${cardNames}",
+          "args": {
+              "player_name": "SwHawk0",
+              "cardNames": "Un nom de carte, un autre nom de carte, un dernier nom de carte"
+          }
+      }
+      ```
+1. All the keys are now substituted by their value: `"Swhawk de défausse de Un nom de carte, Un autre nom de carte, Un dernier nom de carte"`
+
 The information of note here is that the substitution is actually performed by a dojo method, whose documentation can be
 found [here](https://dojotoolkit.org/reference-guide/1.7/dojo/string.html) (I'll let you be the judge of the quality of
 this documentation), and whose source code can be examined
