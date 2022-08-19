@@ -180,7 +180,7 @@ This can be done in three different ways, depending on where you're defining you
 * On the PHP side, in exceptions:
   ```php
   throw new BgaUserException(sprintf(self::_("You selected %s which is a %s card, and you can only select %s cards"),
-      self::_(""),
+      self::_("A card name"),
       $cardType, // defined using self::_("")
       $wantedCardType)); // also defined using self::_("")
   ```
